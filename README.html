@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Markmap</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+}
+#mindmap {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/markmap-toolbar@0.2.0/dist/style.min.css">
+</head>
+<body>
+<svg id="mindmap"></svg>
+<script src="https://cdn.jsdelivr.net/npm/d3@6.7.0"></script><script src="https://cdn.jsdelivr.net/npm/markmap-view@0.2.7"></script><script src="https://cdn.jsdelivr.net/npm/markmap-toolbar@0.2.0/dist/index.umd.min.js"></script><script>(r => {
+          setTimeout(r);
+        })(() => {
+  const {
+    markmap,
+    mm
+  } = window;
+  const toolbar = new markmap.Toolbar();
+  toolbar.attach(mm);
+  const el = toolbar.render();
+  el.setAttribute('style', 'position:absolute;bottom:20px;right:20px');
+  document.body.append(el);
+})</script><script>((getMarkmap, getOptions, data) => {
+        const {
+          Markmap
+        } = getMarkmap();
+        window.mm = Markmap.create('svg#mindmap', getOptions == null ? void 0 : getOptions(), data);
+      })(() => window.markmap,null,{"t":"heading","d":1,"p":{"lines":[0,1]},"v":"Getting Started with Create React App","c":[{"t":"heading","d":2,"p":{"lines":[4,5]},"v":"Available Scripts","c":[{"t":"heading","d":3,"p":{"lines":[8,9]},"v":"<code>npm start</code>"},{"t":"heading","d":3,"p":{"lines":[16,17]},"v":"<code>npm test</code>"},{"t":"heading","d":3,"p":{"lines":[21,22]},"v":"<code>npm run build</code>"},{"t":"heading","d":3,"p":{"lines":[31,32]},"v":"<code>npm run eject</code>"}]},{"t":"heading","d":2,"p":{"lines":[41,42]},"v":"Learn More","c":[{"t":"heading","d":3,"p":{"lines":[47,48]},"v":"Code Splitting"},{"t":"heading","d":3,"p":{"lines":[51,52]},"v":"Analyzing the Bundle Size"},{"t":"heading","d":3,"p":{"lines":[55,56]},"v":"Making a Progressive Web App"},{"t":"heading","d":3,"p":{"lines":[59,60]},"v":"Advanced Configuration"},{"t":"heading","d":3,"p":{"lines":[63,64]},"v":"Deployment"},{"t":"heading","d":3,"p":{"lines":[67,68]},"v":"<code>npm run build</code> fails to minify"}]}]})</script>
+</body>
+</html>

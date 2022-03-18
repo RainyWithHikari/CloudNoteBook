@@ -1,0 +1,75 @@
+.icon-button {
+  background: none;
+  border: none;
+  color: inherit;
+}
+.c-link {
+  cursor: pointer;
+}
+
+.start-page {
+  font-size: 30px;
+  height: 300px;
+  line-height: 300px;
+  color: #ccc;
+  text-align: center;
+}
+
+.left-panel {
+  height: auto;
+  min-height: 100vh;
+  position: relative;
+}
+.no-border {
+  border-radius: 0 !important;
+  border: none !important;
+  background-color: #ebebebc5 !important;
+}
+.no-border:hover{
+  border-radius: 0 !important;
+  border: none !important;
+  background-color: #27262654 !important;
+}
+.right-panel {
+  position: relative;
+}
+.CodeMirror-scroll {
+  height: 600px !important;
+}
+.sync-status {
+  font-size: 12px;
+  color: #959694;
+  position: absolute;
+  bottom: 12px;
+  left: 10px;
+}
+.App{
+  height: auto;
+}
+.markmap{
+  height: auto;
+  width: auto;
+}
+
+.tool-bar{
+  /* width:65px !important; */
+  background-color: #ebebebc5 !important;
+
+}
+.bar.active{
+  background-color: #ffffff00 !important;
+  color:#959694 !important;
+}
+.bar{
+  
+  color:#c5c5c5 !important;
+}
+.bar:hover{ 
+  color:#959694 !important;
+}
+.list-title{
+  height: 41px;
+  background-color: #ebebebc5 !important;
+}
+
+

@@ -1,0 +1,40 @@
+.tablist-component {
+  .nav-link{
+    color: #000000 !important;
+  }
+  .nav-link.active{
+    color: #fbfbfb !important;
+    background-color: #27262654 !important;
+  }
+  .nav-link.active:hover{
+    color: #fbfbfb !important;
+    background-color: #27262654 !important;
+  }
+  .close-icon {
+    visibility: hidden;
+  }
+  .nav-link:hover {
+    background-color: #ebebebc5 !important;
+  }
+  .nav-link:hover .close-icon {
+    visibility: visible;
+  }
+  .nav-link.active .close-icon {
+    visibility: visible;
+  }
+  .unsaved-icon {
+    display: inline-block;
+    background: hsl(0, 0%, 100%);
+    width: 10px;
+    height: 10px;
+  }
+  .withUnsaved.nav-link .close-icon {
+    display: none;
+  }
+  .withUnsaved.nav-link:hover .close-icon {
+    display: inline-block;
+  }
+  .withUnsaved.nav-link:hover .unsaved-icon {
+    display: none;
+  }
+}
