@@ -6,6 +6,7 @@ import PropTypes from 'prop-types'
 import useKeyPress from "../Hook/useKeyPress"
 import './FileList.scss'
 import useContentMenu from "../Hook/useContextMenu"
+import BottomBtn from './BottomBtn'
 
 const remote = window.require('@electron/remote')
 const { Menu, MenuItem } = remote
@@ -15,7 +16,7 @@ const FileList = ({
 }) => {
     const [editStatus, setEditStatus] = useState(false)
     const [value, setValue] = useState('')
-    //const [sort, setSortValue] = useState('')
+    const [sortValue, setSortValue] = useState('')
     const enterPressed = useKeyPress(13)
     const escPressed = useKeyPress(27)
     let node = useRef(null);
@@ -23,10 +24,11 @@ const FileList = ({
     const closeSearch = (editItem) => {
         setEditStatus(false)
         setValue('')
+        setSortValue('')
         //setSortValue('')
         //if we are editing a new file, we need to delete it
         if (editItem.isNew) {
-            onFileDelete(editItem.id)
+            onFileDelete(editItem.id,editItem.sort)
         }
     }
 
@@ -45,13 +47,14 @@ const FileList = ({
             }
         },
         {
-            label: 'Rename',
+            label: 'Edit',
             click: () => {
                 const parentElement = getParentNode(clickedItem.current, 'file-item')
                 if (parentElement) {
-                    const { id, title } = parentElement.dataset
+                    const { id, title ,sort} = parentElement.dataset
                     setEditStatus(id)
                     setValue(title)
+                    setSortValue(sort)
                 }
             }
         },
@@ -61,7 +64,7 @@ const FileList = ({
             click: () => {
                 const parentElement = getParentNode(clickedItem.current, 'file-item')
                 if (parentElement) {
-                    onFileDelete(parentElement.dataset.id)
+                    onFileDelete(parentElement.dataset.id,parentElement.dataset.sort)
                 }
             }
         }
@@ -73,10 +76,10 @@ const FileList = ({
         if (enterPressed && editStatus && value.trim() !== '') {
             //console.log(sort)
 
-            onSaveEdit(editItem.id, value, editItem.isNew)//onSaveEdit(editItem.id, value,sort, editItem.isNew)
+            onSaveEdit(editItem.id, value, sortValue, editItem.isNew)//onSaveEdit(editItem.id, value,sort, editItem.isNew)
             //onsaveEdit2(editItem.id, sort, editItem.isNew)
             setEditStatus(false)
-            setValue('')
+            //setValue('')
             //setSortValue('')
         }
         if (escPressed && editStatus) {
@@ -89,22 +92,23 @@ const FileList = ({
         if (newFile) {
             setEditStatus(newFile.id)
             setValue(newFile.title)
+            setSortValue(newFile.sort)
             //setSortValue(newFile.sort)
         }
     }, [files])
 
-     useEffect(() => {
-         if (editStatus) {
-             node.current.focus()
+    // useEffect(() => {
+    //     if (editStatus) {
+    //         node.current.focus()
 
-         }
+    //     }
 
-     }, [editStatus])
+    // }, [editStatus])
 
 
     return (
         <ul className="row list-group list-group-flush file-list">
-            
+
             {
                 files.map(file => (
                     <li
@@ -112,20 +116,23 @@ const FileList = ({
                         key={file.id}
                         data-id={file.id}
                         data-title={file.title}
+                        data-sort={file.sort}
+                        data-bs-toggle="tooltip"
+                        data-bs-placement="bottom"
+                        title={file.path}
                     >
                         {(file.id !== editStatus && !file.isNew) &&
                             <>
-                                <span className="col-4 text-center">
+                                <span className="col-2 text-center">
                                     <FontAwesomeIcon
                                         size="lg"
                                         icon={faFile} />
                                 </span>
-
                                 <span
-                                    className="col-8 c-link"
+                                    className="col-10 c-link"
                                     onClick={() => {
                                         onFileClick(file.id)
-                                    }}>{file.title}
+                                    }}><span className="text-muted">{file.sort}</span><label>&gt;</label><strong>{file.title}</strong>
                                 </span>
                             </>
                         }
@@ -133,28 +140,41 @@ const FileList = ({
                         {
                             ((file.id === editStatus) || file.isNew) &&
                             <>
-                                <span className="me-2">
-                                    <FontAwesomeIcon
-                                        size="lg"
-                                        icon={faFile} />
-                                </span>
 
+                                <div className="row gy-2">
+                                <label className="">
+                                    
+                                    <strong>File Name</strong>
+                                    
+                                </label>
+                                    <input
+                                        className="form-control"
+                                        value={value}
+                                        //ref={node}
+                                        onChange={(e) => { setValue(e.target.value) }}
+                                    />
+                                    <label className="">
+                                    
+                                    <strong>Sort</strong>
+                                    
+                                </label>
+                                    <input
+                                        className="form-control"
+                                        value={sortValue}
+                                        //ref={node}
+                                        onChange={(e) => { setSortValue(e.target.value) }}
+                                    />
+                                    <BottomBtn
+                                        className=""
+                                        text=""
+                                        icon={faTimes}
+                                        colorClass="btn-outline-secondary"
 
-                                <input
-                                    className="form-control"
-                                    value={value}
-                                    ref={node}
-                                    onChange={(e) => { setValue(e.target.value) }}
-                                />
+                                        onBtnClick={()=>{closeSearch(file) }}
+                                    />
 
-                                <button
-                                    type="button"
-                                    className="btn-close ms-2"
-                                    aria-label="Close"
-                                    onClick={() => { closeSearch(file) }}
-                                >
+                                </div>
 
-                                </button>
                             </>
                         }
 

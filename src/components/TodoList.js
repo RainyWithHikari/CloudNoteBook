@@ -8,8 +8,11 @@ import useKeyPress from "../Hook/useKeyPress"
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './TodoList.scss'
 
-
-
+const bootstrap = window.require('bootstrap')
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+})
 const TodoList = ({ todos, onEventClick, onEventDelete, onSaveEvent }) => {
     const [editEventStatus, setEditEventStatus] = useState(false) //save the id of item which is being edited
     const [EventValue, setEventValue] = useState('')
@@ -27,15 +30,15 @@ const TodoList = ({ todos, onEventClick, onEventDelete, onSaveEvent }) => {
         setEventValue('')
         setEventDate('')
         setEventImportance('')
-        if(editItem.isNew){
+        if (editItem.isNew) {
             onEventDelete(editItem.id)
         }
 
     }
     useEffect(() => {
         const editItem = todos.find(todo => todo.id === editEventStatus);
-        if (enterPressed && editEventStatus && EventValue.trim()!= '' && EventImportance.trim() != '') {
-            onSaveEvent(editItem.id, EventDate, EventValue, EventImportance,EventDetails,editItem.isNew);
+        if (enterPressed && editEventStatus && EventValue.trim() != '' && EventImportance.trim() != '') {
+            onSaveEvent(editItem.id, EventDate, EventValue, EventImportance, EventDetails, editItem.isNew);
             setEditEventStatus(false);
 
         }
@@ -43,10 +46,10 @@ const TodoList = ({ todos, onEventClick, onEventDelete, onSaveEvent }) => {
             closeEdit(editItem)
         }
     })
-    useEffect(()=>{
+    useEffect(() => {
         const newTodo = todos.find(todo => todo.isNew)
         //console.log(newTodo)
-        if(newTodo){
+        if (newTodo) {
             setEditEventStatus(newTodo.id)
             setEventValue(newTodo.todo)
             setEventDate(newTodo.dueDate)
@@ -54,7 +57,7 @@ const TodoList = ({ todos, onEventClick, onEventDelete, onSaveEvent }) => {
             setEventDetails(newTodo.details)
 
         }
-    },[todos])
+    }, [todos])
     return (
         <ul className="row list-group list-group-flush todo-list">
             {
@@ -66,117 +69,77 @@ const TodoList = ({ todos, onEventClick, onEventDelete, onSaveEvent }) => {
                             <>
                                 <div className="row p-0">
                                     <div className="col-1"></div>
-                                <button
-                                                type="button"
-                                                className="icon-button col-2 p-0 text-center"
-                                                onClick={() => { 
-                                                    setEditEventStatus(todo.id); 
-                                                    setEventDate(todo.dueDate); 
-                                                    setEventValue(todo.todo); 
-                                                    setEventImportance(todo.importance);
-                                                    setEventDetails(todo.details) }}
-                                            //onClick={() => { seteditEventStatus(todo.id); setEventValue(todo.todo);setEventDate(todo.dueDate) ;setEventImportance(todo.importance)}}
-                                            >
-                                                <FontAwesomeIcon
-                                                    className=""
-                                                    size="lg"
-                                                    icon={faPenToSquare} />
-                                            </button>
-                                    <span 
-                                            className="col-7"
-                                            onClick={() => {
-                                                onEventClick(todo.id)
-                                            }}>
-                                            {todo.todo}
-                                        </span>
-                                        
-                                        <button
-                                            type="button"
-                                            className="icon-button complete-icon col-2 p-0"
-                                            onClick={() => { onEventDelete(todo.id) }}>
-                                            <FontAwesomeIcon
-                                                className="ms-2"
-                                                size="lg"
-                                                icon={faCircleCheck} />
-                                        </button>
-                                    {/* <p>
-                                        <span 
-                                            className="btn btn-outline-secondary todoitem" 
-                                            data-bs-toggle="collapse" 
-                                            href='#todoitem' 
-                                            aria-expanded="false" 
-                                            aria-controls="collapseExample"
-                                            onClick={() => {
-                                                onEventClick(todo.id)
-                                            }}>
-                                            {todo.todo}
-                                        </span>
-                                        <button
-                                            type="button"
-                                            className="icon-button col-2 p-0"
-                                            onClick={() => { onEventDelete(todo.id) }}>
-                                            <FontAwesomeIcon
-                                                className="ms-2"
-                                                size="lg"
-                                                icon={faCircleCheck} />
-                                        </button>
-                                    </p>
-                                    <div className="collapse" id='todoitem'>
-                                        <div className="card card-body">
-                                            <strong>Due Date:</strong>
-                                            <p>{todo.dueDate}</p>
-                                            <strong>Event:</strong>
-                                            <p>{todo.todo}</p>
-                                            <strong>Urgency:</strong>
-                                            <p>{todo.importance}</p>
-                                            <button
-                                                type="button"
-                                                className="icon-button col-2 p-0"
-                                                onClick={() => { setEditEventStatus(todo.id); setEventDate(todo.dueDate); setEventValue(todo.todo); setEventImportance(todo.importance) }}
-                                            //onClick={() => { seteditEventStatus(todo.id); setEventValue(todo.todo);setEventDate(todo.dueDate) ;setEventImportance(todo.importance)}}
-                                            >
-                                                <FontAwesomeIcon
-                                                    className=""
-                                                    size="lg"
-                                                    icon={faPenToSquare} />
-                                            </button>
+                                    <button
+                                        type="button"
+                                        className="icon-button col-2 p-0 text-center"
+                                        onClick={() => {
+                                            setEditEventStatus(todo.id);
+                                            setEventDate(todo.dueDate);
+                                            setEventValue(todo.todo);
+                                            setEventImportance(todo.importance);
+                                            setEventDetails(todo.details)
+                                        }}
+                                    //onClick={() => { seteditEventStatus(todo.id); setEventValue(todo.todo);setEventDate(todo.dueDate) ;setEventImportance(todo.importance)}}
+                                    >
+                                        <FontAwesomeIcon
+                                            className=""
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="bottom"
+                                            title="Edit"
+                                            size="lg"
+                                            icon={faPenToSquare} />
+                                    </button>
+                                    <span
+                                        className="col-7"
+                                        onClick={() => {
+                                            onEventClick(todo.id)
+                                        }}>
+                                        {todo.todo}
+                                    </span>
 
-
-                                        </div>
-                                    </div> */}
+                                    <button
+                                        type="button"
+                                        className="icon-button complete-icon col-2 p-0"
+                                        onClick={() => { onEventDelete(todo.id) }}>
+                                        <FontAwesomeIcon
+                                            className="ms-2"
+                                            data-bs-toggle="tooltip"
+                                            data-bs-placement="bottom"
+                                            title="Done"
+                                            size="lg"
+                                            icon={faCircleCheck} />
+                                    </button>
                                 </div>
                             </>
                         }
-                        {((todo.id === editEventStatus)|| todo.isNew) &&
+                        {((todo.id === editEventStatus) || todo.isNew) &&
                             <>
                                 <div className="row gy-2">
                                     <label className="">
-                                    
                                         <strong>DueDate</strong>
-                                        
                                     </label>
-                                    
+
                                     <input
                                         placeholder="xxxx-xx-xx"
                                         className="form-control"
                                         value={EventDate}
                                         onChange={(e) => { setEventDate(e.target.value) }} />
-                                    
+
                                     <label className="">
-                                    <strong>Summary</strong></label>
-                                    <input 
-                                    placeholder="summary title"
-                                    type="text"
-                                    ref={node}
+                                        <strong>Summary</strong></label>
+                                    <input
+                                        placeholder="summary title"
+                                        type="text"
+                                        ref={node}
                                         className="form-control"
                                         value={EventValue}
                                         //ref={node}
                                         onChange={(e) => { setEventValue(e.target.value) }} />
                                     <label className="">
-                                    <strong>Urgency</strong></label>
-                                    <select 
-                                        className="form-select" 
-                                        id="inputGroupSelect01" 
+                                        <strong>Urgency</strong></label>
+                                    <select
+                                        className="form-select"
+                                        id="inputGroupSelect01"
                                         onChange={(e) => { setEventImportance(e.target.value) }}
                                     >
                                         <option defaultValue={EventImportance}>{EventImportance}</option>
@@ -186,7 +149,7 @@ const TodoList = ({ todos, onEventClick, onEventDelete, onSaveEvent }) => {
                                     </select>
 
                                     <label className="">
-                                    <strong>Details</strong></label>
+                                        <strong>Details</strong></label>
                                     <textarea
                                         className="form-control"
                                         value={EventDetails}
@@ -197,13 +160,12 @@ const TodoList = ({ todos, onEventClick, onEventDelete, onSaveEvent }) => {
                                         text=""
                                         icon={faTimes}
                                         colorClass="btn-outline-secondary"
-
-                                        onBtnClick={()=>{closeEdit(todo)}}
+                                        onBtnClick={() => { closeEdit(todo) }}
                                     />
 
 
-                                    
-                                    
+
+
 
 
                                 </div>

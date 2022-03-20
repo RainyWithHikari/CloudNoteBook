@@ -19,11 +19,14 @@ const TodoCard = ({ todos, activeID, onCloseCard }) => {
                 })
                 return (
                     <div  className="card-body" key={todo.id}>
-                        <h5 className="card-title">{todo.todo}</h5>
+                        <h4 className="card-title">{todo.todo}</h4>
+                        <hr></hr>
                         <p className="card-text"><strong>Due Date: </strong>{todo.dueDate}</p>
                         
                         <p className="card-text"><strong>Urgency: </strong>{todo.importance}</p>
                         <p className="card-text"><strong>Details: </strong>{todo.details}</p>
+                        
+
                         <BottomBtn
                             className=""
                             text="Close"
@@ -33,7 +36,11 @@ const TodoCard = ({ todos, activeID, onCloseCard }) => {
 
                             onBtnClick={(e) => { e.preventDefault(); onCloseCard(todo.id) }}
                         />
+                        
+                        <h6 class="card-subtitle mt-2 text-muted">Don't give up! Trust yourself!</h6>
+                        
                     </div>
+                    
 
                 )
             })}

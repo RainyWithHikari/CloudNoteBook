@@ -8,7 +8,7 @@ import "./FileSearch.scss"
 
 const FileSearch = ({ title, onFileSearch }) => {
     const [inputActive, setInputActive] = useState(false)
-    const [value, setValue] = useState('');
+    const [searchValue, setSearchValue] = useState('');
     const enterPressed = useKeyPress(13)
     const escPressed = useKeyPress(27)
     let node = useRef(null);
@@ -17,13 +17,14 @@ const FileSearch = ({ title, onFileSearch }) => {
 
     const closeSearch = () => {
         setInputActive(false);
-        setValue(' ');
+        setSearchValue('');
         onFileSearch('')
+       
     }
 
     useEffect(() => {
         if (enterPressed && inputActive) {
-            onFileSearch(value)
+            onFileSearch(searchValue)
         }
         if (escPressed && inputActive) {
             closeSearch()
@@ -66,9 +67,9 @@ const FileSearch = ({ title, onFileSearch }) => {
                         <>
                             <input
                                 className="form-control"
-                                value={value}
+                                value={searchValue}
                                 ref={node}
-                                onChange={(e) => { setValue(e.target.value) }}
+                                onChange={(e) => { setSearchValue(e.target.value) }}
                             />
                             <button
                                 type="button"
