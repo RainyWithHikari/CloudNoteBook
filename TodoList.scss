@@ -1,0 +1,11 @@
+.todo-list{
+    .todo-item:hover{
+        background-color: #ebebebc5;
+    }
+    .complete-icon{
+        visibility: hidden;
+    }
+    .todo-item:hover .complete-icon{
+        visibility: visible;
+    }
+}
