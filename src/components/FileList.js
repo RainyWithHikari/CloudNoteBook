@@ -12,7 +12,7 @@ const remote = window.require('@electron/remote')
 const { Menu, MenuItem } = remote
 
 const FileList = ({
-    files, onFileClick, onSaveEdit, onFileDelete
+    files, onFileClick, onSaveEdit, onFileDelete, sorts
 }) => {
     const [editStatus, setEditStatus] = useState(false)
     const [value, setValue] = useState('')
@@ -28,7 +28,7 @@ const FileList = ({
         //setSortValue('')
         //if we are editing a new file, we need to delete it
         if (editItem.isNew) {
-            onFileDelete(editItem.id,editItem.sort)
+            onFileDelete(editItem.id, editItem.sort)
         }
     }
 
@@ -51,7 +51,7 @@ const FileList = ({
             click: () => {
                 const parentElement = getParentNode(clickedItem.current, 'file-item')
                 if (parentElement) {
-                    const { id, title ,sort} = parentElement.dataset
+                    const { id, title, sort } = parentElement.dataset
                     setEditStatus(id)
                     setValue(title)
                     setSortValue(sort)
@@ -64,7 +64,7 @@ const FileList = ({
             click: () => {
                 const parentElement = getParentNode(clickedItem.current, 'file-item')
                 if (parentElement) {
-                    onFileDelete(parentElement.dataset.id,parentElement.dataset.sort)
+                    onFileDelete(parentElement.dataset.id, parentElement.dataset.sort)
                 }
             }
         }
@@ -142,35 +142,55 @@ const FileList = ({
                             <>
 
                                 <div className="row gy-2">
-                                <label className="">
-                                    
-                                    <strong>File Name</strong>
-                                    
-                                </label>
+                                    <label className="fileName-label">
+
+                                        <strong>File Name</strong>
+
+                                    </label>
                                     <input
                                         className="form-control"
                                         value={value}
                                         //ref={node}
                                         onChange={(e) => { setValue(e.target.value) }}
                                     />
-                                    <label className="">
-                                    
-                                    <strong>Sort</strong>
-                                    
-                                </label>
-                                    <input
+                                    <label className="sort-label">
+
+                                        <strong>Sort</strong>
+
+                                    </label>
+                                    {/* <input
                                         className="form-control"
                                         value={sortValue}
                                         //ref={node}
                                         onChange={(e) => { setSortValue(e.target.value) }}
-                                    />
+                                    /> */}
+                                    <select
+                                        className="form-select"
+                                        id="inputGroupSelect01"
+                                        onChange={(e) => { setSortValue(e.target.value) }}
+                                    >
+                                        <option
+
+                                            placeholder={sortValue}
+                                            value={sortValue} >{sortValue}</option>
+                                        {
+                                            sorts.map(sort => (
+                                                <option
+                                                    key={sort.id}
+
+                                                    value={sort.sortName} >{sort.sortName}</option>
+
+                                            ))
+                                        }
+
+                                    </select>
                                     <BottomBtn
                                         className=""
                                         text=""
                                         icon={faTimes}
                                         colorClass="btn-outline-secondary"
 
-                                        onBtnClick={()=>{closeSearch(file) }}
+                                        onBtnClick={() => { closeSearch(file) }}
                                     />
 
                                 </div>
