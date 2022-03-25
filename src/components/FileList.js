@@ -12,7 +12,7 @@ const remote = window.require('@electron/remote')
 const { Menu, MenuItem } = remote
 
 const FileList = ({
-    files, onFileClick, onSaveEdit, onFileDelete, sorts
+    files, onFileClick, onSaveEdit, onFileDelete, sorts,
 }) => {
     const [editStatus, setEditStatus] = useState(false)
     const [value, setValue] = useState('')
@@ -123,6 +123,7 @@ const FileList = ({
                     >
                         {(file.id !== editStatus && !file.isNew) &&
                             <>
+                            
                                 <span className="col-2 text-center">
                                     <FontAwesomeIcon
                                         size="lg"
