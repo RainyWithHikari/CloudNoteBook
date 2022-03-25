@@ -47,14 +47,25 @@
   height: auto;
 }
 .markmap{
-  height: auto;
-  width: auto;
+  width: 400px; height: 800px
 }
-
+.offcanvas{
+  width:30% !important;
+}
 .tool-bar{
-  /* width:65px !important; */
+  width:95px !important;
+  position: absolute;
+  height:100%;
+  bottom:0;
   background-color: #ebebebc5 !important;
+  padding: 15px;
 
+}
+.container-father{
+  width:95% !important;
+  height:100% !important;
+  padding: 0 !important;
+  margin-left: 95px !important;
 }
 .bar.active{
   background-color: #ffffff00 !important;
@@ -70,6 +81,9 @@
 .list-title{
   height: 41px;
   background-color: #ebebebc5 !important;
+}
+.modal{
+  width:800px !important;
 }
 
 

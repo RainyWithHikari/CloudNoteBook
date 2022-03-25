@@ -1,5 +1,5 @@
 //common
-import React, { useState, useMemo, memo } from 'react'
+import React, { useState, useEffect, memo } from 'react'
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-icons/bootstrap-icons.svg'
@@ -35,6 +35,10 @@ import fileHelper from './utils/fileHelper'
 import { flattenArr, objToArr } from './utils/helper'
 import FileHelper from './utils/fileHelper'
 
+//hooks
+import useIpcRenderer from './Hook/useIpcRenderer';
+
+
 
 
 //require node.js modules
@@ -42,12 +46,14 @@ import FileHelper from './utils/fileHelper'
 const { join, basename, extname, dirname } = window.require('path')
 const remote = window.require('@electron/remote')
 const Store = window.require('electron-store')
+const settingsStore = new Store({ name: 'Settings' })
+const { ipcRenderer } = window.require('electron')
 const fileStore = new Store({ 'name': 'Files Data' })
 const todoStore = new Store({ 'name': 'todos data' })
 const sortStore = new Store({ 'name': 'sorts data' })
 const bootstrap = window.require('bootstrap')
-const ReactDOM = require('react-dom')
-const ReactMarkdown = require('react-markdown')
+
+
 
 
 //use JavaScript to change tabs
@@ -159,7 +165,7 @@ function App() {
   const [searchedFiles, setSearchedFiles] = useState([])
   const [filteredFiles, setFilteredFiles] = useState([])
   const filesArr = objToArr(files)
-  const savedLocation = remote.app.getPath('documents')
+  const savedLocation = settingsStore.get('savedFileLocation') || remote.app.getPath('documents')
   const savedTodoLocation = remote.app.getPath('userData')
   const savedSortLocation = remote.app.getPath('userData')
   const activeFile = files[activeFileID]
@@ -203,7 +209,7 @@ function App() {
     //console.log(activeMindMap.body)
     const { root, features } = transformer.transform(activeMindMap.body);
     //setActiveMindMapID(activeMindMapID)
-    console.log(activeMindMapID)
+    //console.log(activeMindMapID)
     const { styles, scripts } = transformer.getUsedAssets(features);
     if (styles) loadCSS(styles);
     if (scripts) loadJS(scripts, { getMarkmap: () => window.markmap });
@@ -227,15 +233,17 @@ function App() {
     if (!openedFileIDs.includes(fileID)) {
       setOpenedFileIDs([...openedFileIDs, fileID])
     }
+
   }
   const fileChange = (id, value) => {
-
     const newFile = { ...files[id], body: value }
     setFiles({ ...files, [id]: newFile })
     // update unsavedIDs
     if (!unsavedFileIDs.includes(id)) {
       setUnsavedFileIDs([...unsavedFileIDs, id])
     }
+    generateMindmap()
+    
 
   }
   const deleteFile = (id, sortName) => {
@@ -306,6 +314,8 @@ function App() {
     FileHelper.writeFile(activeFile.path, activeFile.body).then(() => {
       setUnsavedFileIDs(unsavedFileIDs.filter(id => id != activeFile.id))
     })
+    generateMindmap()
+    
   }
   const importFiles = () => {
     remote.dialog.showOpenDialog({
@@ -362,6 +372,7 @@ function App() {
   const tabClick = (fileID) => {
     // set current active file
     setActiveFileID(fileID)
+    generateMindmap()
 
   }
   const tabClose = (id) => {
@@ -495,6 +506,11 @@ function App() {
     }
     setSorts({ ...sorts, [newSortID]: newSort })
   }
+  useIpcRenderer({
+    'create-new-file': createNewFile,
+    'import-file': importFiles,
+    'save-edit-file': saveCurrentFile,
+  })
 
   return (
     <div className="App">
@@ -534,7 +550,7 @@ function App() {
           </li>
 
           <li className="nav-item mb-3" role="presentation">
-            <button className="nav-link bar" id="todoLists-tab" data-bs-toggle="tab" data-bs-target="#todoLists" type="button" role="tab" aria-controls="todoLists" aria-selected="false">
+            <button className="nav-link bar" id="user-tab" data-bs-toggle="tab" data-bs-target="#user" type="button" role="tab" aria-controls="user" aria-selected="false">
               <FontAwesomeIcon
                 size="2x"
                 icon={faUserCircle} />
@@ -544,7 +560,8 @@ function App() {
       </div>
       <div className='row container-fluid container-father'>
         <div className='col-3 left-panel'>
-          <div className="tab-content row">
+          
+          <div className="tab-content row ">
             <div className="tab-pane active" id="file" role="tabpanel" aria-labelledby="file-tab">
               <div className='row list-title d-flex align-items-center'>
                 <span className=' col-6 text-left'><strong>File List</strong></span>
@@ -628,6 +645,9 @@ function App() {
               </SortList>
             </div>
             <div className="tab-pane" id="mindmaps" role="tabpanel" aria-labelledby="mindmaps-tab">
+              <button className='btn btn-outline-secondary no-border' onClick={generateMindmap} > Refresh Mindmap</button>
+              <button className='btn btn-outline-secondary no-border' onClick={startCMD} > Export Mindmap </button>
+              <svg className='markmap'></svg>
 
 
             </div>
@@ -673,6 +693,18 @@ function App() {
               }
 
             </div>
+            <div className="tab-pane" id="user" role="tabpanel" aria-labelledby="user-tab">
+              <button className="btn btn-toggle align-items-center rounded collapsed" data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="true">
+                Home
+              </button>
+              <div className="collapse show" id="home-collapse">
+                <ul className="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                  <li><a href="#" className="link-dark rounded">Overview</a></li>
+                  <li><a href="#" className="link-dark rounded">Updates</a></li>
+                  <li><a href="#" className="link-dark rounded">Reports</a></li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
         <div className='main col-9 right-panel p-0'>
@@ -700,7 +732,7 @@ function App() {
               <SimpleMDE
                 key={activeFile && activeFile.id}
                 value={activeFile && activeFile.body}
-                
+
                 onChange={(value) => { fileChange(activeFile.id, value) }}
                 options={{
                   autoDownloadFontAwesome: true,
@@ -718,18 +750,17 @@ function App() {
               >
               </SimpleMDE>
 
-              <BottomBtn
+              {/* <BottomBtn
                 className="col"
                 text="Save Change"
                 colorClass="btn-outline-secondary"
                 icon={faSave}
                 onBtnClick={saveCurrentFile}
-              />
-              <button className="btn btn-outline-secondary no-border" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling" >Show Mindmap</button>
+              /> */}
+              {/* <button className="btn btn-outline-secondary no-border" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasScrolling" aria-controls="offcanvasScrolling" >Show Mindmap</button>
               <div className="offcanvas offcanvas-start" data-bs-scroll="true" data-bs-backdrop="false" tabIndex="-1" id="offcanvasScrolling" aria-labelledby="offcanvasScrollingLabel" >
                 <div className="offcanvas-header">
-                  <h5 className="offcanvas-title" id="offcanvasScrollingLabel">{activeFile.title}</h5>
-                  
+                  <h5 className="offcanvas-title" id="offcanvasScrollingLabel">{activeFile.title}</h5>                  
                   <button className='btn btn-outline-secondary no-border'onClick={generateMindmap} > Update </button>
 
                   <button type="button" className="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close" ></button>
@@ -738,14 +769,8 @@ function App() {
                   
                   <svg className='markmap'></svg>
                 </div>
-              </div>
-              <BottomBtn
-                className="col"
-                text="Export Mindmap"
-                colorClass="btn-outline-secondary"
-                icon={faFileExport}
-                onBtnClick={startCMD}
-              />
+              </div> */}
+
             </>
           }
         </div>
