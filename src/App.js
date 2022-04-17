@@ -28,18 +28,16 @@ import TodoList from './components/TodoList'
 import TodoCard from './components/TodoCard'
 import SortBadge from './components/SortBadge'
 import SortList from './components/SortList'
+import Loader from './components/Loader';
 
 
 //utils
 import fileHelper from './utils/fileHelper'
-import { flattenArr, objToArr } from './utils/helper'
+import { flattenArr, objToArr , timestampToString} from './utils/helper'
 import FileHelper from './utils/fileHelper'
 
 //hooks
 import useIpcRenderer from './Hook/useIpcRenderer';
-
-
-
 
 //require node.js modules
 
@@ -53,7 +51,7 @@ const todoStore = new Store({ 'name': 'todos data' })
 const sortStore = new Store({ 'name': 'sorts data' })
 const bootstrap = window.require('bootstrap')
 
-
+const getAutoSync = () =>['accessKey', 'secretKey', 'bucketName','enableAutoSync'].every(key => !!settingsStore.get(key))
 
 
 //use JavaScript to change tabs
@@ -76,13 +74,15 @@ var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
 const saveFilesToStore = (files) => {
   //no need to store all the info into the system.
   const fileStoreObj = objToArr(files).reduce((result, file) => {
-    const { id, path, title, sort, createdAt } = file//const { id , path , title , createdAt , sort} = file
+    const { id, path, title, sort, createdAt ,isSynced , updatedAt} = file
     result[id] = {
       id,
       path,
       title,
       sort,
       createdAt,
+      isSynced,
+      updatedAt,
 
     }
     return result
@@ -164,6 +164,7 @@ function App() {
   const [unsavedFileIDs, setUnsavedFileIDs] = useState([])
   const [searchedFiles, setSearchedFiles] = useState([])
   const [filteredFiles, setFilteredFiles] = useState([])
+  const [ isLoading , setLoading ] = useState(false)
   const filesArr = objToArr(files)
   const savedLocation = settingsStore.get('savedFileLocation') || remote.app.getPath('documents')
   const savedTodoLocation = remote.app.getPath('userData')
@@ -176,10 +177,13 @@ function App() {
   })
   const fileListArr = (filteredFiles.length > 0) ? filteredFiles : filesArr
 
-  const SortBadgeClick = (sortName) => {
+  const SortBadgeClick = (sortID) => {
+    const choosedSort = sortArr.filter(sort =>sort.id.includes(sortID))
+    const sortName = choosedSort[0].sortName
+    //console.log(sortName)
     setActiveSortName(sortName)
-    console.log(activeSortName)
-    const sortFiles = filesArr.filter(file => file.sort.includes(sortName))
+    //console.log(activeSortName)
+    const sortFiles = filesArr.filter(file => file.sort.includes(sortID))
     setFilteredFiles(sortFiles)
   }
   //use cmd to transform .md file to mindmap file
@@ -222,13 +226,21 @@ function App() {
     setActiveFileID(fileID)
     //setActiveMindMapID(activeFileID)
     setActiveMindMapID(fileID)
-    console.log('file click', activeMindMapID)
+    //console.log('file click', activeMindMapID)
     const currentFile = files[fileID]
+    const { id , title , path , isLoaded } = currentFile
     if (!currentFile.isLoaded) {
-      fileHelper.readFile(currentFile.path).then(value => {
-        const newFile = { ...files[fileID], body: value, isLoaded: true }
-        setFiles({ ...files, [fileID]: newFile })
-      })
+      if(getAutoSync()){
+        ipcRenderer.send('download-file',{key:`${title}.md`, path , id })
+      }else{
+
+        fileHelper.readFile(currentFile.path).then(value => {
+          const newFile = { ...files[fileID], body: value, isLoaded: true }
+          setFiles({ ...files, [fileID]: newFile })
+        })
+
+      }
+      
     }
     if (!openedFileIDs.includes(fileID)) {
       setOpenedFileIDs([...openedFileIDs, fileID])
@@ -242,7 +254,7 @@ function App() {
     if (!unsavedFileIDs.includes(id)) {
       setUnsavedFileIDs([...unsavedFileIDs, id])
     }
-    generateMindmap()
+    //generateMindmap()
     
 
   }
@@ -259,32 +271,57 @@ function App() {
         const sortFiles = afterDeleteArr.filter(file => file.sort.includes(sortName))
         setFilteredFiles(sortFiles)
         tabClose(id)
+        if(getAutoSync()){
+          ipcRenderer.send('delete-file',{key:`${files[id].title}.md`})
+        }
+        alert('已删除')
       })
     }
   }
   const updateFile = (id, title, sort, isNew) => {
+    
+    //const fileListArr = (checkFiles.length > 0) ? checkFiles : filesArr
     //信息持久化
     //if inNew is false , path will be old dir + newTitle
     const newPath = isNew ? join(savedLocation, `${title}.md`) : join(dirname(files[id].path), `${title}.md`)
     const modifiedFile = { ...files[id], title: title, sort: sort, isNew: false, path: newPath }
     const newFiles = { ...files, [id]: modifiedFile }
-    if (isNew) {
-      //判断文件是否存在，如果不存在，新建md文件
+    console.log(files[id].title)
+    console.log(modifiedFile.title)
+    //const checkFiles = filesArr.filter(file => file.title == title)
+    //var checkFileBoolean = false
+    //var checkFileBoolean = (checkFiles.length > 0 ) ? true : false
+    //console.log(checkFiles)
+    //console.log(checkFiles.length)
+    //console.log(checkFileBoolean)
+
+      if (isNew) {
+      
+        //判断文件是否存在，如果不存在，新建md文件
       fileHelper.writeFile(newPath, files[id].body).then(() => {
         setFiles(newFiles)
         //数据持久化
         saveFilesToStore(newFiles)
       })
-    } else {
+      //var checkFileBoolean = false
+      
+    } 
+    if(!isNew) {
       const oldPath = files[id].path
       //如果存在，修改文件名
       fileHelper.renameFile(oldPath, newPath).then(() => {
         setFiles(newFiles)
         //数据持久化
         saveFilesToStore(newFiles)
+        if(getAutoSync()){
+          ipcRenderer.send('rename-file',{key:`${files[id].title}.md`, newTitle:`${modifiedFile.title}.md`})
+        }
       })
+      //var checkFileBoolean = false
 
     }
+
+    
   }
 
   const createNewFile = () => {
@@ -297,24 +334,29 @@ function App() {
       createdAt: new Date().getTime(),
       isNew: true,
     }
+
     setFiles({ ...files, [newID]: newFile })
   }
   const showAllFiles = () => {
     setFilteredFiles([])
     //setSearchedFiles([])
-
   }
   const fileSearch = (keyword) => {
     // filter out the new files based on the keyword
     const newFiles = filesArr.filter(file => file.title.includes(keyword))
-    setSearchedFiles(newFiles)
+    //console.log(newFiles)
+    setFilteredFiles(newFiles)
   }
   const saveCurrentFile = () => {
+    const { path , body , title } = activeFile
     //save files to original path
-    FileHelper.writeFile(activeFile.path, activeFile.body).then(() => {
+    FileHelper.writeFile(path, body).then(() => {
       setUnsavedFileIDs(unsavedFileIDs.filter(id => id != activeFile.id))
+      if(getAutoSync()){
+        ipcRenderer.send('upload-file',{key:`${title}.md`,path})
+      }
     })
-    generateMindmap()
+    //generateMindmap()
     
   }
   const importFiles = () => {
@@ -342,8 +384,6 @@ function App() {
             title: basename(path, extname(path)),
             path,
             //sort:basename(path , extname(path)),
-
-
           }
         })
         //console.log(importFilesArr)
@@ -372,7 +412,7 @@ function App() {
   const tabClick = (fileID) => {
     // set current active file
     setActiveFileID(fileID)
-    generateMindmap()
+    //generateMindmap()
 
   }
   const tabClose = (id) => {
@@ -383,15 +423,13 @@ function App() {
     if (tabsWithout.length > 0) {
       setActiveFileID(tabsWithout[0])
       setActiveMindMapID(tabsWithout[0])
-      console.log('tab close', activeMindMapID)
+      //console.log('tab close', activeMindMapID)
     } else {
       setActiveFileID('')
       setActiveMindMapID('')
-      console.log('tab close', activeMindMapID)
+      //console.log('tab close', activeMindMapID)
     }
   }
-
-
 
   //functions of todo lists
   const todoClick = (todoID) => {
@@ -463,23 +501,27 @@ function App() {
 
 
   const deleteSorts = (id) => {
-    if (sorts[id].isNew) {
-      const { [id]: sort, ...afterDelete } = sorts
-      setSorts(afterDelete)
-    } else {
-      fileHelper.deleteFile(sorts[id].path).then(() => {
-
+    const sortFiles = filesArr.filter(file => file.sort.includes(id))
+    if(sortFiles == ''){
+      if (sorts[id].isNew) {
         const { [id]: sort, ...afterDelete } = sorts
         setSorts(afterDelete)
-        saveSortsToStore(afterDelete)
-      })
-    }
+      } else {
+        fileHelper.deleteFile(sorts[id].path).then(() => {
+  
+          const { [id]: sort, ...afterDelete } = sorts
+          setSorts(afterDelete)
+          saveSortsToStore(afterDelete)
+        })
+      }
+    }else{
+      alert('无法删除！请确认要删除的分类下没有笔记。')
+    }    
   }
   const updateSorts = (id, sortName, sortDescription, isNew) => {
     const newSortPath = isNew ? join(savedSortLocation, `sort-${sortName}.log`) : join(dirname(sorts[id].path), `sort-${sortName}.log`)
     const modifiedSort = { ...sorts[id], sortName: sortName, sortDescription: sortDescription, path: newSortPath, isNew: false }
     const newSorts = { ...sorts, [id]: modifiedSort }
-
     if (isNew) {
       fileHelper.writeFile(newSortPath, '').then(() => {
         setSorts(newSorts)
@@ -506,15 +548,61 @@ function App() {
     }
     setSorts({ ...sorts, [newSortID]: newSort })
   }
+  const activeFileUploaded = ()=> {
+    const {id} = activeFile
+    const modifiedFile = { ...files[id],isSynced:true,updatedAt:new Date().getTime()}
+    const newFiles = { ... files,[id]:modifiedFile}
+    setFiles(newFiles)
+    saveFilesToStore(newFiles)
+  }
+
+  const activeFileDownloaded = (event , message) => {
+    const currentFile = files[message.id]
+    const { id , path } = currentFile
+    fileHelper.readFile(path).then(value =>{
+      let newFile
+      if(message.status == 'download-success'){
+        newFile = { ...files[id], body:value , isLoaded:true , isSynced:true , updatedAt:new Date().getTime()}
+      }else{
+        newFile = { ...files[id], body:value , isLoaded:true }
+      }
+      const newFiles = { ...files, [id]:newFile}
+      setFiles(newFiles)
+      saveFilesToStore(newFiles)
+    })
+
+  }
+  const filesUploaded = () => {
+    const newFiles = objToArr(files).reduce((result , file) => {
+      const currentTime = new Date().getTime()
+      result[file.id] = {
+        ...files[file.id],
+        isSynced: true,
+        updatedAt :currentTime,
+      }
+      return result
+    },{})
+    setFiles(newFiles)
+    saveFilesToStore(newFiles)
+  }
   useIpcRenderer({
+  
     'create-new-file': createNewFile,
     'import-file': importFiles,
     'save-edit-file': saveCurrentFile,
+    'active-file-uploaded':activeFileUploaded,
+
+    'file-downloaded':activeFileDownloaded,
+    'loading-status':(message,status)=>{setLoading(status)},
+    'files-uploaded':filesUploaded,
   })
 
   return (
     <div className="App">
-
+      { isLoading &&
+      <Loader></Loader>
+      }
+      
       <div className='tool-bar'>
         <ul className="nav nav-pills flex-column" id="myTab" role="tablist">
           <li className="nav-item mb-3" role="presentation">
@@ -549,13 +637,13 @@ function App() {
             </button>
           </li>
 
-          <li className="nav-item mb-3" role="presentation">
+          {/* <li className="nav-item mb-3" role="presentation">
             <button className="nav-link bar" id="user-tab" data-bs-toggle="tab" data-bs-target="#user" type="button" role="tab" aria-controls="user" aria-selected="false">
               <FontAwesomeIcon
                 size="2x"
                 icon={faUserCircle} />
             </button>
-          </li>
+          </li> */}
         </ul>
       </div>
       <div className='row container-fluid container-father'>
@@ -594,21 +682,27 @@ function App() {
 
               </div>
               <div className="col collapse" id="collapseSort">
-                <div className='row'>
+                
+                <FileSearch
+                onFileSearch={fileSearch}
+                ></FileSearch>
+
+                
+                <div className='row d-flex align-items-center'>
+                  <SortBadge
+                  sorts={sortArr}
+                  activeSortName={activeSortName}
+                  onSortBadgeClick={SortBadgeClick}>
+                </SortBadge>
                   <BottomBtn
                     colorClass='btn-outline-secondary'
-                    text='All Files'
+                    text='Show All Files'
                     type='button'
                     icon={faAngleDown}
                     onBtnClick={showAllFiles}>
                   </BottomBtn>
                 </div>
-
-                <SortBadge
-                  sorts={sortArr}
-                  activeSortName={activeSortName}
-                  onSortBadgeClick={SortBadgeClick}>
-                </SortBadge>
+                
               </div>
 
 
@@ -749,6 +843,9 @@ function App() {
                 }}
               >
               </SimpleMDE>
+              { activeFile.isSynced && 
+                <span className="sync-status">已同步，上次同步{timestampToString(activeFile.updatedAt)}</span>
+              }
 
               {/* <BottomBtn
                 className="col"

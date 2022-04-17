@@ -86,13 +86,15 @@ let template = [{
     click: () => {
       ipcMain.emit('upload-all-to-qiniu')
     }
-  }, {
-    label: '从云端下载到本地',
-    enabled: qiniuIsConfiged,
-    click: () => {
+  }
+  // {
+    // label: '从云端下载到本地',
+    // enabled: qiniuIsConfiged,
+    // click: () => {
       
-    }
-  }]
+    // }
+  //}
+]
 },
 {
   label: '视图',
