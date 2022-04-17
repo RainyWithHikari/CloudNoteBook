@@ -34,7 +34,18 @@ class QiniuManager {
         const digest = qiniu.util.generateAccessToken(this.mac, reqURL)
         console.log('trigger here')
         return new Promise((resolve, reject) => {
-            qiniu.rpc.postWithoutForm(reqURL, digest, this._handleCallback(resolve, reject))
+            qiniu.rpc.postWithoutForm(reqURL, digest, this._handleCallback( resolve , reject))
+        })
+    }
+    getFileList(){
+        return new Promise((resolve, reject) => {
+            this.bucketManager.listPrefix(this.bucket , this._handleCallback(resolve, reject))
+
+        })
+    }
+    getStat(key){
+        return new Promise((resolve, reject) => {
+            this.bucketManager.stat(this.bucket , key , this._handleCallback( resolve , reject ))
         })
     }
     generateDownloadLink(key){
@@ -70,6 +81,12 @@ class QiniuManager {
 
         })
     }
+    renameFile(key , newTitle){
+        return new Promise((resolve, reject) => {
+            this.bucketManager.move(this.bucket, key , this.bucket , newTitle , this._handleCallback(resolve, reject))
+
+        })
+    }
     downloadFile(key,downloadPath){
         //get the download link
         return this.generateDownloadLink(key).then(link =>{
@@ -100,6 +117,7 @@ class QiniuManager {
         //return a promise based result
 
     }
+    
 
 
 }

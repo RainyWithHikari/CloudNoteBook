@@ -25,7 +25,7 @@ export const getParentNode = (node, parentClassName) => {
    return false
  }
 
-// export const timestampToString = (timestamp) => {
-//   const date = new Date(timestamp)
-//   return date.toLocaleDateString() + ' ' + date.toLocaleTimeString()
-// }
+export const timestampToString = (timestamp) => {
+  const date = new Date(timestamp)
+   return date.toLocaleDateString() + ' ' + date.toLocaleTimeString()
+}
