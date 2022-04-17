@@ -8,8 +8,8 @@ import './FileList.scss'
 import useContentMenu from "../Hook/useContextMenu"
 import BottomBtn from './BottomBtn'
 
-const remote = window.require('@electron/remote')
-const { Menu, MenuItem } = remote
+
+
 
 const FileList = ({
     files, onFileClick, onSaveEdit, onFileDelete, sorts,
@@ -21,7 +21,7 @@ const FileList = ({
     const escPressed = useKeyPress(27)
     let node = useRef(null);
 
-    const closeSearch = (editItem) => {
+    const closeEdit = (editItem) => {
         setEditStatus(false)
         setValue('')
         setSortValue('')
@@ -73,9 +73,10 @@ const FileList = ({
     //keyboard event
     useEffect(() => {
         const editItem = files.find(file => file.id === editStatus);
-        if (enterPressed && editStatus && value.trim() !== '') {
+        const checkValue = files.find(file => file.title == value)
+        //console.log(checkValue)
+        if (enterPressed && editStatus && value.trim() !== '' && checkValue == undefined) {
             //console.log(sort)
-
             onSaveEdit(editItem.id, value, sortValue, editItem.isNew)//onSaveEdit(editItem.id, value,sort, editItem.isNew)
             //onsaveEdit2(editItem.id, sort, editItem.isNew)
             setEditStatus(false)
@@ -83,7 +84,7 @@ const FileList = ({
             //setSortValue('')
         }
         if (escPressed && editStatus) {
-            closeSearch(editItem)
+            closeEdit(editItem)
         }
     })
     useEffect(() => {
@@ -123,7 +124,7 @@ const FileList = ({
                     >
                         {(file.id !== editStatus && !file.isNew) &&
                             <>
-                            
+
                                 <span className="col-2 text-center">
                                     <FontAwesomeIcon
                                         size="lg"
@@ -133,7 +134,7 @@ const FileList = ({
                                     className="col-10 c-link"
                                     onClick={() => {
                                         onFileClick(file.id)
-                                    }}><span className="text-muted">{file.sort}</span><label>&gt;</label><strong>{file.title}</strong>
+                                    }}><strong>{file.title}</strong>
                                 </span>
                             </>
                         }
@@ -178,8 +179,7 @@ const FileList = ({
                                             sorts.map(sort => (
                                                 <option
                                                     key={sort.id}
-
-                                                    value={sort.sortName} >{sort.sortName}</option>
+                                                    value={sort.id} >{sort.sortName}</option>
 
                                             ))
                                         }
@@ -191,7 +191,7 @@ const FileList = ({
                                         icon={faTimes}
                                         colorClass="btn-outline-secondary"
 
-                                        onBtnClick={() => { closeSearch(file) }}
+                                        onBtnClick={() => { closeEdit(file) }}
                                     />
 
                                 </div>

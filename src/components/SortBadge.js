@@ -5,37 +5,33 @@ import './SortBadge.scss'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import BottomBtn from './BottomBtn'
 
-import { faAngleDown} from '@fortawesome/free-solid-svg-icons'
+import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
 
 
 const SortBadge = ({ sorts, activeSortName, onSortBadgeClick }) => {
     return (
-        <div>
-            {sorts.map(sort => (
+        <div className="dropdown ">
+            <button className="btn btn-block no-border dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                {activeSortName}
+            </button>
+            <ul className="dropdown-menu" aria-labelledby="dropdownMenuButton1">
 
-                <div className="row" key={sort.id} >
-                    <BottomBtn
-                        colorClass='btn-outline-secondary'
-                        text={sort.sortName}
-                        icon={faAngleDown}
-                        onBtnClick={(e) => { e.preventDefault(); onSortBadgeClick(sort.sortName) }}>
+                <li>
+                    {sorts.map(sort => (
 
-                    </BottomBtn>
+                        <a key={sort.id} className="dropdown-item" onClick={(e) => { e.preventDefault(); onSortBadgeClick(sort.id) }}>{sort.sortName}</a>
 
+                    )
 
-                </div>
-
-
-            )
-
-            )
+                    )
 
 
 
-            }
+                    }
 
+                </li>
+            </ul>
         </div>
-
 
     )
 }

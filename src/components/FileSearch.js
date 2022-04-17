@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass, faTimes } from '@fortawesome/free-solid-svg-icons';
 import PropTypes from 'prop-types';
 import useKeyPress from "../Hook/useKeyPress";
+import useIpcRenderer from '../Hook/useIpcRenderer'
 import "./FileSearch.scss"
 
 
@@ -12,15 +13,20 @@ const FileSearch = ({ title, onFileSearch }) => {
     const enterPressed = useKeyPress(13)
     const escPressed = useKeyPress(27)
     let node = useRef(null);
-
+    const startSearch = () => {
+        setInputActive(true)
+      }
 
 
     const closeSearch = () => {
         setInputActive(false);
         setSearchValue('');
-        onFileSearch('')
+        onFileSearch(false)
        
     }
+    useIpcRenderer({
+        'search-file': startSearch
+      })
 
     useEffect(() => {
         if (enterPressed && inputActive) {
